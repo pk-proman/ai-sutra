@@ -2,15 +2,17 @@
 # One-time setup of a Hostinger VPS (Ubuntu/Debian) to serve the AI Sutra website.
 #
 # Usage, as root on the VPS:
-#   bash setup-vps.sh <domain> "<deploy public key>" [email-for-ssl]
-# Example:
+#   bash setup-vps.sh <domain-or-VPS-IP> "<deploy public key>" [email-for-ssl]
+# Examples:
+#   bash setup-vps.sh 203.0.113.10 "ssh-ed25519 AAAA... github-deploy"          # no domain yet: serve on the IP
 #   bash setup-vps.sh aisutra.in "ssh-ed25519 AAAA... github-deploy" prashant.c.kumar@gmail.com
+# Run it again with the domain later; the site switches over and SSL is added.
 #
 # What it does (safe to run again):
 #   - installs nginx, PHP-FPM (for the enquiry form), rsync and certbot
 #   - creates a 'deploy' user that GitHub Actions logs in as, with only your deploy key
 #   - creates /var/www/aisutra/public (website) and /var/www/aisutra/data (enquiry backups)
-#   - adds an nginx site for <domain> and www.<domain>, without touching other sites
+#   - adds an nginx site for <domain> and www.<domain> (or for the bare IP), without touching other sites
 #   - gets a free Let's Encrypt SSL certificate if the domain already points to this server
 set -euo pipefail
 
@@ -23,15 +25,16 @@ say(){ printf '\n\033[1;35m==>\033[0m %s\n' "$*"; }
 die(){ printf '\n\033[1;31mStopped:\033[0m %s\n' "$*" >&2; exit 1; }
 
 [ "$(id -u)" -eq 0 ] || die "run this as root (ssh root@YOUR_VPS_IP)."
-[ -n "$DOMAIN" ] && [ -n "$PUBKEY" ] || die "usage: bash setup-vps.sh <domain> \"<deploy public key>\" [email]"
+[ -n "$DOMAIN" ] && [ -n "$PUBKEY" ] || die "usage: bash setup-vps.sh <domain-or-VPS-IP> \"<deploy public key>\" [email]"
 DOMAIN="${DOMAIN#http://}"; DOMAIN="${DOMAIN#https://}"; DOMAIN="${DOMAIN%%/*}"; DOMAIN="${DOMAIN#www.}"
+IP_MODE=0; [[ "$DOMAIN" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && IP_MODE=1
 case "$PUBKEY" in ssh-ed25519\ *|ssh-rsa\ *|ecdsa-sha2-*) ;; *) die "the second argument must be the PUBLIC key (starts with ssh-ed25519)." ;; esac
 command -v apt-get >/dev/null || die "this script supports Ubuntu/Debian VPS images only."
 
 # ---- Check nothing else owns the web ports ----
 say "Checking what is already running on ports 80/443"
 if command -v ss >/dev/null; then
-  OWNERS=$(ss -ltnpH '( sport = :80 or sport = :443 )' 2>/dev/null | grep -o 'users:(("[^"]*"' | sed 's/users:(("//' | sort -u || true)
+  OWNERS=$(ss -ltnpH '( sport = :80 or sport = :443 )' 2>/dev/null | grep -o 'users:(("[^"]*"' | sed 's/users:(("//; s/"$//' | sort -u || true)
   OTHERS=$(printf '%s\n' "$OWNERS" | grep -vx nginx | grep -v '^$' || true)
   [ -z "$OTHERS" ] || die "ports 80/443 are already used by: $(echo $OTHERS). This VPS serves websites through another web server or panel (e.g. Apache, Docker, CloudPanel, Coolify). Add the site through that tool instead, pointing it at $ROOT_DIR/public (static files, plus PHP for /api/enquiry.php)."
   [ -n "$OWNERS" ] && echo "nginx is already running; the AI Sutra site will be added alongside existing sites." || echo "Ports are free."
@@ -69,13 +72,14 @@ if [ ! -f "$ROOT_DIR/public/index.html" ]; then
 fi
 
 # ---- nginx site ----
-say "Writing the nginx site for $DOMAIN"
+if [ "$IP_MODE" = 1 ]; then SERVER_NAMES="$DOMAIN"; else SERVER_NAMES="$DOMAIN www.$DOMAIN"; fi
+say "Writing the nginx site for $SERVER_NAMES"
 cat > "/etc/nginx/sites-available/$SITE" <<NGINX
 # AI Sutra website (managed by scripts/server/setup-vps.sh)
 server {
     listen 80;
     listen [::]:80;
-    server_name $DOMAIN www.$DOMAIN;
+    server_name $SERVER_NAMES;
     root $ROOT_DIR/public;
     index index.html;
     charset utf-8;
@@ -130,9 +134,13 @@ fi
 
 # ---- SSL ----
 SERVER_IP=$(curl -fsS4 https://ifconfig.me 2>/dev/null || hostname -I | awk '{print $1}')
-DNS_IP=$(getent ahostsv4 "$DOMAIN" 2>/dev/null | awk 'NR==1{print $1}' || true)
+DNS_IP=""; [ "$IP_MODE" = 1 ] || DNS_IP=$(getent ahostsv4 "$DOMAIN" 2>/dev/null | awk 'NR==1{print $1}' || true)
+[ "$IP_MODE" = 1 ] && SERVER_IP="$DOMAIN"
 say "SSL certificate"
-if [ -n "$EMAIL" ] && [ -n "$DNS_IP" ] && [ "$DNS_IP" = "$SERVER_IP" ]; then
+if [ "$IP_MODE" = 1 ]; then
+  echo "Skipped: SSL certificates need a domain name. The site is served at http://$DOMAIN for now."
+  echo "When the domain is ready, point its A records to $SERVER_IP and run this script again with the domain."
+elif [ -n "$EMAIL" ] && [ -n "$DNS_IP" ] && [ "$DNS_IP" = "$SERVER_IP" ]; then
   WWW=(); [ "$(getent ahostsv4 "www.$DOMAIN" | awk 'NR==1{print $1}')" = "$SERVER_IP" ] && WWW=(-d "www.$DOMAIN")
   certbot --nginx -d "$DOMAIN" "${WWW[@]}" --non-interactive --agree-tos -m "$EMAIL" --redirect
 else
@@ -151,6 +159,6 @@ Add these to the GitHub repository (Settings > Secrets and variables > Actions):
   secret SSH_HOST         = $SERVER_IP
   secret SSH_USER         = $DEPLOY_USER
   secret SSH_PRIVATE_KEY  = the PRIVATE half of the deploy key
-  variable SITE_URL       = https://$DOMAIN
+  variable SITE_URL       = $( [ "$IP_MODE" = 1 ] && echo "http://$DOMAIN" || echo "https://$DOMAIN" )
   variable SSH_PORT       = only if SSH is not on port 22
 DONE
