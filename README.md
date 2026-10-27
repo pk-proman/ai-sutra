@@ -37,11 +37,11 @@ The script:
 
 It stops without changing anything if another web server or panel (Apache, Docker, CloudPanel, Coolify) already owns ports 80/443.
 
-**No domain yet?** Pass the VPS IP instead of the domain, leave out the email, and the site is served at `http://VPS_IP`:
+**No domain yet?** Pass the VPS IP with a port instead of the domain, and leave out the email. The site is then served at `http://VPS_IP:3010`, separate from anything else nginx already serves on the VPS:
 ```bash
-ssh root@VPS_IP "bash /root/setup-vps.sh VPS_IP '$(cat ~/.ssh/aisutra_deploy.pub)'"
+ssh root@VPS_IP "bash /root/setup-vps.sh VPS_IP:3010 '$(cat ~/.ssh/aisutra_deploy.pub)'"
 ```
-Set `SITE_URL` to `http://VPS_IP` in step 6. When the domain is bought, do step 4, run the script again with the domain and your email (this adds SSL), and change `SITE_URL` to `https://yourdomain.com`. Until then the site runs without HTTPS, so treat it as a preview rather than the public launch.
+If the page doesn't open, allow TCP port 3010 in **hPanel → VPS → Security → Firewall** (if a firewall is enabled there). Set `SITE_URL` to `http://VPS_IP:3010` in step 6. When the domain is bought, do step 4, run the script again with the domain and your email (this adds SSL on the standard ports), and change `SITE_URL` to `https://yourdomain.com`. Until then the site runs without HTTPS, so treat it as a preview rather than the public launch.
 
 ### 4. Point the domain to the VPS
 In your domain's DNS, set an **A record** for `@` and for `www` to `VPS_IP`. If the domain is with Hostinger, this is under **hPanel → Domains → DNS**. After the DNS change takes effect (minutes to a few hours), get the SSL certificate:
