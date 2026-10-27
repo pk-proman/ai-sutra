@@ -1,61 +1,89 @@
 # AI Sutra website
 
-The AI Sutra website (AI Sutra™: The Neural Fabric for Industrial Excellence), built with React, Vite and Tailwind. Every push to `main` builds the site and deploys it to Hostinger automatically through GitHub Actions.
-
-## How it works
+The AI Sutra website (AI Sutra™: The Neural Fabric for Industrial Excellence), built with React, Vite and Tailwind. Every push to `main` builds the site and deploys it to the Hostinger VPS automatically through GitHub Actions.
 
 ```
-Edit on GitHub ──► commit to main ──► GitHub Actions builds the site ──► uploads to Hostinger public_html over FTPS
+Edit on GitHub ──► commit to main ──► GitHub Actions builds the site ──► copies it to the VPS over SSH (rsync)
 ```
 
 A deploy takes about 2 to 3 minutes. Progress shows in the **Actions** tab, and a red cross there means the live site was not changed.
 
-## One-time setup
+On the VPS, nginx serves the site from `/var/www/aisutra/public`. PHP-FPM runs only the enquiry form (`/api/enquiry.php`). Enquiry backups are kept outside the web folder in `/var/www/aisutra/data/enquiries.csv`.
 
-### 1. Hostinger FTP details
-In **hPanel → Files → FTP Accounts**, note the **FTP hostname** (e.g. `ftp.yourdomain.com` or an IP address) and the **username**, and set or reset the **password**. Also note the **directory** shown for the account. You need it in step 3.
+## One-time setup (about 15 minutes, all in the terminal)
 
-### 2. GitHub secrets
-In this repository, go to **Settings → Secrets and variables → Actions → Secrets → New repository secret**, and add:
+Replace `VPS_IP`, `yourdomain.com` and `OWNER/REPO` below with your values.
 
-| Secret | Value |
-|---|---|
-| `FTP_SERVER` | FTP hostname from hPanel |
-| `FTP_USERNAME` | FTP username |
-| `FTP_PASSWORD` | FTP password |
-| `SMTP_PASSWORD` | *(optional)* password of the mailbox used to send enquiry emails, if `mode` is `smtp` |
-| `ERPNEXT_API_KEY`, `ERPNEXT_API_SECRET` | *(optional)* to create ERPNext Leads from enquiries |
+### 1. Find the VPS address
+In hPanel, open **VPS → Overview** and note the **IP address** and the **root** SSH login. If you use Hostinger's command-line tool (`brew install hostinger/tap/hostinger`), you can list your VPS with `hostinger vps --help`.
 
-### 3. GitHub variables
-On the **Variables** tab of the same page, add:
+### 2. Create a deploy key on your computer
+This key is used only by GitHub to upload the website. Your own root login is not shared.
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/aisutra_deploy -N "" -C "aisutra-github-deploy"
+```
 
-| Variable | Value |
-|---|---|
-| `SITE_URL` | Your live address, e.g. `https://www.aisutra.in` (no trailing slash). Used for search engines and link previews. |
-| `FTP_SERVER_DIR` | *(only if needed)* Where the site goes on the server. Default `./public_html/`. If the FTP account's directory in hPanel already ends in `public_html`, set this to `./`. |
-| `FTP_PROTOCOL` | *(only if needed)* Default `ftps`. Change to `ftp` only if the upload step cannot connect. |
+### 3. Prepare the VPS
+Copy the setup script to the VPS and run it as root:
+```bash
+scp scripts/server/setup-vps.sh root@VPS_IP:/root/
+ssh root@VPS_IP "bash /root/setup-vps.sh yourdomain.com '$(cat ~/.ssh/aisutra_deploy.pub)' prashant.c.kumar@gmail.com"
+```
+The script:
+- installs nginx and PHP;
+- creates a `deploy` user that only your deploy key can log in to;
+- adds the site for `yourdomain.com` and `www.yourdomain.com` without touching other sites on the server;
+- gets a free SSL certificate if the domain already points to the VPS.
 
-### 4. First deploy
-Go to **Actions → Deploy to Hostinger → Run workflow**. When it turns green, open your domain. Delete Hostinger's placeholder `default.php` from `public_html` if it is still there. Turn on the free SSL certificate under **hPanel → Security → SSL**.
+It stops without changing anything if another web server or panel (Apache, Docker, CloudPanel, Coolify) already owns ports 80/443.
 
-## Everyday changes (all from the GitHub website, no tools needed)
+### 4. Point the domain to the VPS
+In your domain's DNS, set an **A record** for `@` and for `www` to `VPS_IP`. If the domain is with Hostinger, this is under **hPanel → Domains → DNS**. After the DNS change takes effect (minutes to a few hours), get the SSL certificate:
+```bash
+ssh root@VPS_IP "certbot --nginx -d yourdomain.com -d www.yourdomain.com --agree-tos -m prashant.c.kumar@gmail.com --redirect"
+```
+
+### 5. Gmail app password for enquiry emails
+A VPS has no mail server, so the site sends enquiry emails through Gmail:
+1. Turn on 2-Step Verification for prashant.c.kumar@gmail.com.
+2. Create an **App password** at https://myaccount.google.com/apppasswords. It is a 16-character code.
+
+### 6. Store the secrets in GitHub
+With the GitHub CLI (`gh auth login` first):
+```bash
+REPO=OWNER/REPO
+gh secret set SSH_HOST        --repo $REPO --body "VPS_IP"
+gh secret set SSH_USER        --repo $REPO --body "deploy"
+gh secret set SSH_PRIVATE_KEY --repo $REPO < ~/.ssh/aisutra_deploy
+gh secret set SSH_KNOWN_HOSTS --repo $REPO --body "$(ssh-keyscan -H VPS_IP 2>/dev/null)"
+gh secret set SMTP_PASSWORD   --repo $REPO          # paste the Gmail app password when prompted
+gh variable set SITE_URL      --repo $REPO --body "https://yourdomain.com"
+# only if SSH on the VPS is not on port 22:
+# gh variable set SSH_PORT    --repo $REPO --body "2222"
+```
+You can also add these on GitHub under **Settings → Secrets and variables → Actions**.
+
+### 7. First deploy
+```bash
+gh workflow run "Deploy to Hostinger VPS" --repo $REPO
+gh run watch --repo $REPO
+```
+Then open https://yourdomain.com and send a test enquiry.
+
+## Everyday changes (from the GitHub website, no tools needed)
 
 Open the file on GitHub, click the pencil icon, edit, then **Commit changes**. The site updates a few minutes later.
 
 | What | File |
 |---|---|
-| Where enquiries are emailed (`to_email`), email sending mode, ERPNext on/off | `public/api/config.php` |
+| Where enquiries are emailed (`to_email`), sending account, ERPNext on/off | `public/api/config.php` |
 | Contact details shown on the site (email, phone, WhatsApp, office) | `public/content/site.json` |
 | Product catalogue | `public/content/products.json` |
 | Page text and design | `src/app.js` (Claude can make these changes for you) |
 
 The deploy checks that the JSON files are valid before publishing, so a missing comma stops the deploy instead of breaking the live catalogue.
 
-## Enquiries
-
-The contact form posts to `api/enquiry.php` on Hostinger. That script emails the enquiry, optionally creates an ERPNext Lead, and keeps a backup copy in `api/data/enquiries.csv`. The file is blocked from public access, and deploys never touch it. It also has a spam trap and a limit of 5 enquiries per visitor per hour.
-
-**Email sending:** `'mode' => 'mail'` uses Hostinger's built-in PHP mail; the first emails may go to Gmail spam. For reliable delivery, create a mailbox such as `no-reply@yourdomain.com` in **hPanel → Emails**. Then set `'mode' => 'smtp'` and the mailbox address in `config.php`, and add its password as the `SMTP_PASSWORD` secret.
+**Optional, ERPNext:** set `'enabled' => true` under `erpnext` in `config.php`, then add the GitHub secrets `ERPNEXT_API_KEY` and `ERPNEXT_API_SECRET`. These come from an ERPNext user allowed to create Leads (**User → API Access → Generate Keys**).
 
 ## Working locally (developers)
 

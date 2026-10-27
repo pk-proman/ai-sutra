@@ -12,7 +12,8 @@ function respond(int $code, array $body): void { http_response_code($code); echo
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') respond(405, ['ok' => false, 'error' => 'method']);
 
 $config = require __DIR__ . '/config.php';
-$dataDir = __DIR__ . '/data';
+// Enquiry backups: outside the web folder when the server provides one (e.g. /var/www/aisutra/data on the VPS).
+$dataDir = $config['data_dir'] ?? (is_dir(dirname(__DIR__, 2) . '/data') ? dirname(__DIR__, 2) . '/data' : __DIR__ . '/data');
 
 // ---- Read and validate input ----
 $raw = file_get_contents('php://input', false, null, 0, 20000);
