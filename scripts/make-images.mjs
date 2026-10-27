@@ -1,0 +1,14 @@
+// Generates favicon PNGs and the link-preview image from the logo. Run once: node scripts/make-images.mjs
+import { chromium } from 'playwright';
+import { readFileSync } from 'fs';
+const fav = readFileSync('public/favicon.svg','utf8');
+const mark = `<svg viewBox="0 0 120 120" width="200" height="200"><defs><linearGradient id="g" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#FF6A3D"/><stop offset=".5" stop-color="#FF3D9A"/><stop offset="1" stop-color="#9B7BFF"/></linearGradient></defs><g fill="url(#g)">${[0,90,135,180,225,270,315].map(r=>`<rect x="55.5" y="13" width="9" height="11" rx="2" transform="rotate(${r} 60 60)"/>`).join('')}</g><circle cx="60" cy="60" r="34" fill="none" stroke="url(#g)" stroke-width="8" stroke-dasharray="183.9 29.7" transform="rotate(-20 60 60)"/><path d="M56 58 L47 45 M47 45 L44 72 M56 58 L63 78 M63 78 L68 64" stroke="#F4F2FF" stroke-opacity=".45" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M44 72 L56 58 L68 64 L92 30 M81 30 L92 30 L92 41" fill="none" stroke="url(#g)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><g fill="#F4F2FF"><circle cx="44" cy="72" r="4.2"/><circle cx="56" cy="58" r="4.2"/><circle cx="68" cy="64" r="4.2"/><circle cx="47" cy="45" r="3"/><circle cx="63" cy="78" r="3"/></g></svg>`;
+const og = `<html><body style="margin:0;width:1200px;height:630px;background:radial-gradient(700px 500px at 90% 0%,rgba(155,123,255,.35),transparent 60%),radial-gradient(600px 450px at 0% 100%,rgba(255,106,61,.25),transparent 60%),#090818;font-family:Arial,sans-serif;display:flex;align-items:center;gap:56px;padding:0 90px;box-sizing:border-box">${mark}<div><div style="font-size:96px;font-weight:900;letter-spacing:-3px;line-height:1;background:linear-gradient(100deg,#FF6A3D,#FF3D9A 48%,#9B7BFF);-webkit-background-clip:text;color:transparent">AI Sutra<sup style="font-size:30px;-webkit-text-fill-color:#9B7BFF">™</sup></div><div style="color:#F4F2FF;font-size:36px;margin-top:22px;font-weight:700">The Neural Fabric for Industrial Excellence.</div><div style="color:#ADA9D0;font-size:26px;margin-top:18px">Digital Transformation &amp; AI for manufacturing, on the AISutra platform</div></div></body></html>`;
+const b = await chromium.launch();
+async function shot(w,h,content,path){ const p=await b.newPage({viewport:{width:w,height:h}}); await p.setContent(content); await p.screenshot({path,omitBackground:true}); await p.close(); }
+const tile = s => `<html><body style="margin:0;background:transparent">${fav.replace('<svg ',`<svg width="${s}" height="${s}" `)}</body></html>`;
+await shot(32,32,tile(32),'public/favicon-32.png');
+await shot(180,180,tile(180),'public/apple-touch-icon.png');
+await shot(512,512,tile(512),'public/icon-512.png');
+await shot(1200,630,og,'public/og-image.png');
+await b.close(); console.log('images done');

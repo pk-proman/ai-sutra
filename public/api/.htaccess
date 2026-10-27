@@ -1,0 +1,4 @@
+# Only enquiry.php may be called from the web.
+<FilesMatch "^(config(\.local)?\.php|.*\.csv|.*\.json)$">
+  Require all denied
+</FilesMatch>

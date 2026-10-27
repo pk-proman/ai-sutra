@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.DS_Store
+# Server-only secrets and enquiry data never go into Git
+public/api/config.local.php
+public/api/data/*
+!public/api/data/.htaccess

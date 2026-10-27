@@ -1,0 +1,297 @@
+[
+  {
+    "category": "Service",
+    "name": "Discovery",
+    "order": 10,
+    "outcomes": [
+      "Improvement discoveries across the full cycle",
+      "Consolidated enhancements with timeline",
+      "Expected impact and value for each step",
+      "Business objectives each change achieves"
+    ],
+    "segment": "Cross-cycle",
+    "status": "In pilot",
+    "summary": "A fixed-scope review of your processes and IT systems against your SOPs, ending in a value roadmap you can act on.",
+    "id": "discovery"
+  },
+  {
+    "category": "Platform",
+    "name": "CRM Platform",
+    "order": 20,
+    "outcomes": [
+      "No lead lost between phone, email and expos",
+      "One pipeline view for the whole sales team",
+      "A won deal becomes a quotation and sales order without re-entry"
+    ],
+    "segment": "Sales",
+    "status": "In build",
+    "summary": "Leads, accounts, enquiries, pipeline and follow-ups in one simple application, with WhatsApp and email on the same timeline.",
+    "id": "crm-platform"
+  },
+  {
+    "category": "Platform",
+    "name": "Role-based Homepages",
+    "order": 30,
+    "outcomes": [
+      "Every user starts the day on what needs them",
+      "Approvals cleared faster",
+      "Less training needed than a full ERP screen"
+    ],
+    "segment": "Cross-cycle",
+    "status": "In build",
+    "summary": "One home screen per role showing today's tasks, approvals, alerts and key numbers.",
+    "id": "role-homepages"
+  },
+  {
+    "category": "AI agent",
+    "name": "Lead Agent",
+    "order": 40,
+    "outcomes": [
+      "Sales time spent on best-fit buyers",
+      "Faster first response",
+      "Clean lead data from day one"
+    ],
+    "segment": "Sales",
+    "status": "In pilot",
+    "summary": "Captures leads from every source, removes duplicates, scores them and assigns an owner.",
+    "id": "lead-agent"
+  },
+  {
+    "category": "AI agent",
+    "name": "Enquiry Intake Agent",
+    "order": 50,
+    "outcomes": [
+      "Faster response to every enquiry",
+      "Fewer clarification rounds",
+      "Structured specs ready for costing"
+    ],
+    "segment": "Sales",
+    "status": "In build",
+    "summary": "Reads enquiry emails, PDFs and drawings, extracts the specifications and lists what is missing.",
+    "id": "enquiry-intake-agent"
+  },
+  {
+    "category": "AI agent",
+    "name": "Quote Engine",
+    "order": 60,
+    "outcomes": [
+      "Quotes out in hours, not days",
+      "Margin protected on every deal",
+      "Every revision tracked with its margin impact"
+    ],
+    "segment": "Sales",
+    "status": "In pilot",
+    "summary": "Prices quotations from the live BOM, material and labour rates, and applies your margin rules.",
+    "id": "quote-engine"
+  },
+  {
+    "category": "AI agent",
+    "name": "Planning Assistant",
+    "order": 70,
+    "outcomes": [
+      "Realistic delivery promises",
+      "Fewer daily reshuffles",
+      "Bottlenecks visible before they bite"
+    ],
+    "segment": "Execution",
+    "status": "Planned",
+    "summary": "Drafts the production plan from the order book, capacity and due dates, and proposes delivery dates you can keep.",
+    "id": "planning-assistant"
+  },
+  {
+    "category": "AI agent",
+    "name": "MRP Agent",
+    "order": 80,
+    "outcomes": [
+      "Fewer stock-outs at the machine",
+      "No urgent-purchase premium",
+      "Lower inventory for the same output"
+    ],
+    "segment": "Execution",
+    "status": "Planned",
+    "summary": "Nets the BOM against stock and open purchase orders, predicts shortages and raises material requests.",
+    "id": "mrp-agent"
+  },
+  {
+    "category": "AI agent",
+    "name": "Procurement Agent",
+    "order": 90,
+    "outcomes": [
+      "Lower buying cost",
+      "Materials on time",
+      "Buyers freed from follow-up calls"
+    ],
+    "segment": "Execution",
+    "status": "Planned",
+    "summary": "Sends RFQs, compares supplier quotes, drafts purchase orders, chases deliveries and matches goods receipts.",
+    "id": "procurement-agent"
+  },
+  {
+    "category": "App",
+    "name": "Shop-floor App",
+    "order": 100,
+    "outcomes": [
+      "Live WIP for every order",
+      "True cost of every job",
+      "Downtime and scrap tracked by cause"
+    ],
+    "segment": "Execution",
+    "status": "Planned",
+    "summary": "Digital job cards on a tablet: start, stop, output, scrap and downtime for every job.",
+    "id": "shop-floor-app"
+  },
+  {
+    "category": "App",
+    "name": "Quality App",
+    "order": 110,
+    "outcomes": [
+      "Consistent quality, first time right",
+      "Less rework and rejection",
+      "Audit-ready records"
+    ],
+    "segment": "Execution",
+    "status": "Planned",
+    "summary": "Inspection plans on every work order, with digital NCR and CAPA workflows and photo evidence.",
+    "id": "quality-app"
+  },
+  {
+    "category": "AI agent",
+    "name": "Purchase Invoice Agent",
+    "order": 120,
+    "outcomes": [
+      "Accurate payables with far less manual effort",
+      "Mismatches caught before payment",
+      "Stronger supplier trust"
+    ],
+    "segment": "Finance",
+    "status": "In pilot",
+    "summary": "Reads supplier bills, matches them to the purchase order and goods receipt, and schedules payment.",
+    "id": "purchase-invoice-agent"
+  },
+  {
+    "category": "AI agent",
+    "name": "Collections Agent",
+    "order": 130,
+    "outcomes": [
+      "Lower DSO",
+      "Stronger, more predictable cash flow",
+      "No follow-up forgotten"
+    ],
+    "segment": "Finance",
+    "status": "In build",
+    "summary": "Sends payment reminders, records promises to pay and escalates overdue accounts.",
+    "id": "collections-agent"
+  },
+  {
+    "category": "AI agent",
+    "name": "E-invoice Automation",
+    "order": 140,
+    "outcomes": [
+      "Invoiced the same day",
+      "Fewer GST errors and disputes",
+      "Dispatch and billing always in step"
+    ],
+    "segment": "Finance",
+    "status": "In build",
+    "summary": "Raises a GST-compliant e-invoice and e-way bill the moment goods are dispatched.",
+    "id": "e-invoice-automation"
+  },
+  {
+    "category": "AI agent",
+    "name": "Support Agent",
+    "order": 150,
+    "outcomes": [
+      "Faster resolution",
+      "SLAs tracked and met",
+      "Every complaint on record"
+    ],
+    "segment": "Support",
+    "status": "Planned",
+    "summary": "Logs service requests from WhatsApp and the web, checks warranty, and routes each ticket to the right engineer.",
+    "id": "support-agent"
+  },
+  {
+    "category": "App",
+    "name": "AMC Manager",
+    "order": 160,
+    "outcomes": [
+      "Recurring service revenue protected",
+      "No renewal missed",
+      "Clear view of every installed machine"
+    ],
+    "segment": "Support",
+    "status": "Planned",
+    "summary": "Tracks contracts and warranty status, reminds customers before renewal and prepares the renewal quote.",
+    "id": "amc-manager"
+  },
+  {
+    "category": "App",
+    "name": "Feedback & Closure",
+    "order": 170,
+    "outcomes": [
+      "Cash released at closure",
+      "Lessons fed back into quoting",
+      "More repeat orders"
+    ],
+    "segment": "Closure",
+    "status": "Planned",
+    "summary": "Collects customer feedback automatically and closes each order against a checklist of dues, documents and sign-off.",
+    "id": "feedback-and-closure"
+  },
+  {
+    "category": "Dashboard",
+    "name": "Management Cockpit",
+    "order": 180,
+    "outcomes": [
+      "Decisions made today, not at month-end",
+      "One version of every number",
+      "ROI tracked against the Discovery baseline"
+    ],
+    "segment": "Cross-cycle",
+    "status": "In build",
+    "summary": "Order book, capacity, delivery, cash, margin and service on one live screen for the MD and department heads.",
+    "id": "management-cockpit"
+  },
+  {
+    "category": "AI agent",
+    "name": "Ask-your-ERP",
+    "order": 190,
+    "outcomes": [
+      "Answers in seconds, without waiting for a report",
+      "Leaders explore data themselves",
+      "Fewer ad-hoc report requests"
+    ],
+    "segment": "Cross-cycle",
+    "status": "Planned",
+    "summary": "Answers management questions in plain language from live business data.",
+    "id": "ask-your-erp"
+  },
+  {
+    "category": "App",
+    "name": "Knowledge Portal",
+    "order": 200,
+    "outcomes": [
+      "Any document found in seconds",
+      "Faster onboarding for new staff",
+      "Knowledge stays when people leave"
+    ],
+    "segment": "Cross-cycle",
+    "status": "Planned",
+    "summary": "A searchable home for SOPs, drawings and records, with AI answers grounded in your own documents.",
+    "id": "knowledge-portal"
+  },
+  {
+    "category": "Service",
+    "name": "End-to-end IT Ownership",
+    "order": 210,
+    "outcomes": [
+      "One team answers for all technology",
+      "Predictable monthly cost",
+      "Systems that scale with the business"
+    ],
+    "segment": "Cross-cycle",
+    "status": "In build",
+    "summary": "We run your software, hardware, licenses and AI agents as one accountable partner.",
+    "id": "it-ownership"
+  }
+]

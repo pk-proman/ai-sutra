@@ -1,0 +1,64 @@
+name: Deploy to Hostinger
+
+# Runs on every push to main, or manually from the Actions tab.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: hostinger-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install the browser used to pre-render pages
+        run: npx playwright install --with-deps chromium
+
+      - name: Check the content files are valid JSON
+        run: |
+          for f in public/content/*.json; do node -e "JSON.parse(require('fs').readFileSync('$f','utf8'))" || { echo "::error file=$f::$f is not valid JSON"; exit 1; }; done
+
+      - name: Build the website
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: npm run build
+
+      - name: Add server-only secrets (SMTP password, ERPNext keys)
+        env:
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          ERPNEXT_API_KEY: ${{ secrets.ERPNEXT_API_KEY }}
+          ERPNEXT_API_SECRET: ${{ secrets.ERPNEXT_API_SECRET }}
+        run: |
+          if [ -n "$SMTP_PASSWORD$ERPNEXT_API_KEY$ERPNEXT_API_SECRET" ]; then
+            node scripts/write-local-config.mjs dist/api/config.local.php
+            echo "config.local.php written"
+          else
+            echo "No secrets set; skipping"
+          fi
+
+      - name: Upload to Hostinger over FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ${{ vars.FTP_PROTOCOL || 'ftps' }}
+          port: ${{ vars.FTP_PORT || 21 }}
+          local-dir: ./dist/
+          server-dir: ${{ vars.FTP_SERVER_DIR || './public_html/' }}
